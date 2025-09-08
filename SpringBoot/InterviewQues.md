@@ -62,20 +62,144 @@ A Java Bean is basically a simple Java class that:
 
 🌿 What is a Bean in Spring (Spring Boot)?
 - In Spring/Spring Boot, the word Bean has a special meaning.
-- It doesn’t just mean the Java Bean class — it means any Java object that is managed by the Spring IoC container.
-- The IoC container (Inversion of Control) is like a factory in Spring that creates and manages objects (beans) for you.
+- It doesn’t just mean the Java Bean class — **it means any Java object that is managed by the Spring IoC container.**
+- The IoC container (Inversion of Control) is like a factory in Spring that **creates and manages objects (beans) for you.**
 - You don’t create objects using new everywhere. Instead, you let Spring create and provide them whenever needed. This is how Dependency Injection (DI) works in Spring.
 
+## Diff between ApplicationContext vs BeanFactory?
+- 🏭 BeanFactory
+ - It’s the basic container in Spring.
+ - Responsible only for creating and managing beans.
+ - It **lazily initializes beans** → beans are created only when you request them.
+ - Think of it as the bare minimum factory — like a simple tea stall, just serving tea (beans).
 
-Diff between ApplicationContext vs BeanFactory?
-Where should we use ApplicationContext and where BeanFactory?
-What is SpringIOC container?
-Did you face any circular dependency issues while coding? 
-How to get rid of it? Allow-circular-dependency: true in properties file if that is required
-SpringDataJPARepository vs CrudRepository
+ - 🏢 ApplicationContext
+  - It is a superset of BeanFactory → provides all features of BeanFactory + many extra features.
+  - Eager initialization by default → beans are created at startup (faster response later).
+  - Provides extra enterprise-level features:
+   - Event handling (publish/subscribe)
+   - Internationalization (i18n)
+   - Annotation-based configuration support
+   - Easy integration with Spring Boot auto-config
+    
+ - Think of it as a big office cafeteria — not only tea (beans), but also snacks, AC, billing system, etc.
+
+## What is the difference between IOCContainer and ApplicationCOntext?
+
+```
+IoC Container = the concept (any mechanism that manages beans and DI ie dependency injection).
+ApplicationContext = the actual implementation of IoC container that Spring Boot uses by default.
+```
+
+🔑 First, what is an IoC Container?
+
+**IoC = Inversion of Control. ---- IT IS A CONCEPT**
+- It means instead of you creating objects (new MyService()), the framework (Spring) creates and injects them where needed.
+- The IoC Container is the engine in Spring that is responsible for:
+ - Creating beans
+ - Wiring dependencies (Dependency Injection)
+ - Managing bean lifecycle (init, destroy, scopes)
+
+👉 Think of it like a factory manager: you just ask for what you need, and it provides the ready-made object.
+
+⚡ Now, **what is ApplicationContext?**
+
+**ApplicationContext is itself a type of IoC Container**.
+- More specifically:
+   The core IoC container is defined by the BeanFactory interface.
+   ApplicationContext extends BeanFactory and adds enterprise-level features
+
+| Aspect             | **IoC Container (BeanFactory)**                 | **ApplicationContext**                                                      |
+| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| **Definition**     | Core container interface for managing beans     | Advanced IoC container (sub-interface of BeanFactory)                       |
+| **Initialization** | Lazy by default (bean created on first request) | Eager by default (beans created at startup)                                 |
+| **Features**       | Only basic bean creation & dependency injection | Adds enterprise features (events, i18n, profiles, annotation scanning, AOP) |
+| **Spring Boot**    | Rarely used directly                            | Default container in Spring Boot                                            |
+| **Use case**       | Lightweight apps, memory-constrained envs       | Almost always used in modern apps                                           |
+
+## Where should we use ApplicationContext and where BeanFactory?
+
+🚀 In Spring Boot
+- You almost always use ApplicationContext.
+- Spring Boot automatically creates an ApplicationContext for you when the app starts.
+- In a Spring Boot app, the ApplicationContext is created automatically when your app starts.
+- How can you access it?
+  - When you start your Spring Boot app, SpringApplication.run() actually returns the ApplicationContext.
+
+```
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        ApplicationContext context = SpringApplication.run(DemoApplication.class, args); //returns applicationContext
+
+        // Fetch bean manually
+        MyService service = context.getBean(MyService.class);
+        System.out.println(service.greet());
+    }
+}
+```
+
+
+## What is SpringIOC container?
+- Factory manager that creates beans, helps in dependency injection etc.
+- BeanFactory defines the core IOCcontainer, which is extended by the ApplicationContext.
+
+## Did you face any circular dependency issues while coding? and How to get rid of it? 
+- A circular dependency happens when two or more beans depend on each other, directly or indirectly.
+- Spring tries to create Bean A → sees it needs Bean B → tries to create Bean B → but Bean B needs Bean A → deadlock!
+- Eg: Here constructor injection fails due to circular dependency:
+ ```
+ @Component
+public class A {
+    private final B b;
+
+    public A(B b) {
+        this.b = b;
+    }
+}
+
+@Component
+public class B {
+    private final A a;
+
+    public B(A a) {
+        this.a = a;
+    }
+}
+```
+
+### How to get rid:
+1. **spring.main.allow-circular-references=true** in properties file if that is required
+2. Use @Lazy annotation:
+ ```
+@Component
+public class A {
+    private final B b;
+
+    public A(@Lazy B b) {   // Lazy injection breaks the cycle
+        this.b = b;
+    }
+}
+
+@Component
+public class B {
+    private final A a;
+
+    public B(@Lazy A a) {
+        this.a = a;
+    }
+}
+```
+
+## SpringDataJPARepository vs CrudRepository
 How do you integrate logging in your application?
   - logback is default
-  - log4j is added in place orf logging
+  - log4j is added in place of logging:
+    - 
 What do we use for visualizing the logs? What tools have you used?
 Explain Spring profiles
 Diff between @Primary and @Qualifier Annotation
