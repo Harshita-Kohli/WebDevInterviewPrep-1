@@ -200,10 +200,123 @@ How do you integrate logging in your application?
   - logback is default
   - log4j is added in place of logging:
     - 
-What do we use for visualizing the logs? What tools have you used?
-Explain Spring profiles
-Diff between @Primary and @Qualifier Annotation
-What kind of Authentication methods have you used? JWT or Cognito etc
+## What do we use for visualizing the logs? What tools have you used?
+- Kibana is for Visualisation
+  
+## Explain Spring profiles:
+
+- Spring Profiles allow us to **define different configurations for different environments** like development, testing, and production.
+- By using the **@Profile annotation** and profile-specific property files, we can control which beans and configurations are loaded at runtime.
+- This is important because it helps in clean separation of environment-specific settings (like database URLs, log levels, external API keys), makes applications flexible to deploy across environments, and avoids accidental use of dev/test configs in production.
+
+  
+## Why Profiles are Important:
+ - Environment Separation:
+   - Avoids mixing dev/test/prod configs in one place.
+   - Keeps sensitive configs (like DB credentials) out of dev code.
+
+ - Flexibility:
+   - Switch between environments with just one parameter.
+   - No code changes needed.
+
+- Maintainability:
+  - Cleaner config management (no messy if-else in config).
+
+- Testing:
+  - You can activate a test profile during integration testing.
+
+
+## Diff between @Primary and @Qualifier Annotation:
+🟢 Problem: Multiple Beans of Same Type
+- If you have more than one bean of the same type in Spring’s container, the framework won’t know which one to inject.
+- Example:
+```
+public interface PaymentService { }
+
+@Service
+public class CreditCardPaymentService implements PaymentService { }
+
+@Service
+public class PaypalPaymentService implements PaymentService { }
+```
+
+Now if you do:
+```
+@Autowired
+private PaymentService paymentService;
+```
+👉 Spring will throw an ambiguity error because there are two beans (CreditCardPaymentService, PaypalPaymentService) of type PaymentService.
+
+**🟡Solution 1: @Primary**
+- Marks a bean as the default choice when multiple candidates exist.
+- Only one bean of a type can be @Primary.
+
+Example:
+```
+@Service
+@Primary
+public class CreditCardPaymentService implements PaymentService { }
+
+@Service
+public class PaypalPaymentService implements PaymentService { }
+```
+
+**🟡 Solution 2: @Qualifier**
+
+- Used when you want to explicitly specify which bean to inject.
+- Works together with @Autowired.
+
+Example:
+```
+@Service("paypalService")
+public class PaypalPaymentService implements PaymentService { }
+
+@Service("creditCardService")
+public class CreditCardPaymentService implements PaymentService { }
+```
+
+Usage:
+```
+@Autowired
+@Qualifier("paypalService")
+private PaymentService paymentService; //specify the qualifier at the time of injection
+```
+
+**👉 Here, even if @Primary is set on another bean, @Qualifier overrides it.**
+Now if you @Autowired PaymentService paymentService; → Spring will inject CreditCardPaymentService by default.
+
+- Both @Primary and @Qualifier help resolve **bean injection conflicts** when multiple beans of the same type exist.
+- **@Primary marks one bean as the default so it gets injected if no qualifier is specified.**
+- On the other hand, **@Qualifier is used to explicitly pick which bean to inject, even overriding a @Primary if necessary.**
+-  In short, @Primary sets the default, while @Qualifier gives explicit control.
+
+| Feature           | `@Primary`                           | `@Qualifier`                |
+| ----------------- | ------------------------------------ | --------------------------- |
+| Default injection | Yes (chooses one bean automatically) | No                          |
+| Explicit choice   | No                                   | Yes                         |
+| Number per type   | Only one `@Primary` allowed per type | Multiple qualifiers allowed |
+| Priority          | `@Qualifier` > `@Primary`            | Always wins over `@Primary` |
+
+  
+## What kind of Authentication methods have you used? JWT or Cognito etc
+1. JWT(JSON WEB Token):
+🔄 JWT Authentication Flow in Java (Spring Boot)
+
+ - User Logs In: User sends credentials (username/password) to /login.
+ - Server Validates: Server checks credentials (e.g., against DB).
+ - JWT Issued:
+   - If valid, server generates a JWT (with claims like sub, role, exp).
+   - JWT is signed with server’s secret/private key.
+   - JWT is returned to the client.
+ - Client Stores Token: Client stores JWT (in localStorage, sessionStorage, or cookie).
+ - Accessing APIs: For subsequent requests, client sends -->  Authorization: Bearer <jwt_token>
+ - Server Validates Token: Server does not check DB.
+  - Instead:
+    - Decodes JWT. Verifies signature using the secret/public key. Checks expiry (exp).
+    - If valid → allows request.
+    - If invalid/expired → rejects with 401 Unauthorized.
+   
+    -   
 What is JWT token made up of? When we decode: issuer, expiration time, etc
 Howe do you call one service from another one in Microservice architecture?
   - Synchronous communication: HTTP methods
