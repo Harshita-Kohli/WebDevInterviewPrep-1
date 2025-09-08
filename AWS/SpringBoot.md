@@ -60,6 +60,13 @@ A Java Bean is basically a simple Java class that:
 👉 Think of it like a capsule: it holds data inside, and you use methods (getters/setters) to open it carefully.
 
 
+🌿 What is a Bean in Spring (Spring Boot)?
+- In Spring/Spring Boot, the word Bean has a special meaning.
+- It doesn’t just mean the Java Bean class — it means any Java object that is managed by the Spring IoC container.
+- The IoC container (Inversion of Control) is like a factory in Spring that creates and manages objects (beans) for you.
+- You don’t create objects using new everywhere. Instead, you let Spring create and provide them whenever needed. This is how Dependency Injection (DI) works in Spring.
+
+
 Diff between ApplicationContext vs BeanFactory?
 Where should we use ApplicationContext and where BeanFactory?
 What is SpringIOC container?
