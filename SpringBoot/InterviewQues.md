@@ -306,7 +306,7 @@ Now if you @Autowired PaymentService paymentService; → Spring will inject Cred
  - Server Validates: Server checks credentials (e.g., against DB).
  - JWT Issued:
    - If valid, server generates a JWT (with claims like sub, role, exp).
-   - JWT is signed with server’s secret/private key.
+   - **JWT is signed with server’s secret/private key.**
    - JWT is returned to the client.
  - Client Stores Token: Client stores JWT (in localStorage, sessionStorage, or cookie).
  - Accessing APIs: For subsequent requests, client sends -->  Authorization: Bearer <jwt_token>
@@ -316,14 +316,106 @@ Now if you @Autowired PaymentService paymentService; → Spring will inject Cred
     - If valid → allows request.
     - If invalid/expired → rejects with 401 Unauthorized.
    
-    -   
-What is JWT token made up of? When we decode: issuer, expiration time, etc
-Howe do you call one service from another one in Microservice architecture?
-  - Synchronous communication: HTTP methods
-  - Asynchronous: Kafka/ messaging queue
+ 
+## What is JWT token made up of? - Header, Payload, Signature
+- Decode the token using jwt.io
+- Header: Contains metadata about the token.
+
+Example:
+```
+{
+  "alg": "RS256",   // algorithm used (HMAC, RSA, etc.)
+  "typ": "JWT"      // token type
+}
+```
+
+- Payload:
+  Contains claims (the actual data).
+
+Example:
+```
+{
+  "sub": "user123",     // subject (user id)
+  "role": "ADMIN",      // custom claim
+  "iat": 1694160000,    // issued at
+  "exp": 1694163600     // expiry
+}
+```
+
+- Signature:
+  Ensures token integrity (that it wasn’t tampered with).
+  Created by taking:
+```
+HMACSHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  secretOrPrivateKey
+)
+```
+Verifiable using the secret (HMAC) or public key (RSA/ECDSA).
+If signature is tampered with, it means JWT token is invalid, so keep unauthorized.
+
+<img width="2881" height="1812" alt="image" src="https://github.com/user-attachments/assets/26d00b80-472f-40e0-8506-0e83ce285142" />
+
+## AWS Cognito:
+🔑 How Authentication Works in AWS Cognito
+
+Think of the flow like this:
+  1. User Login
+  User enters credentials (username/password) or uses social login (Google, Facebook, etc.).
+  The login request goes to Cognito User Pool.
+  
+  2. Cognito Validates User: Cognito checks credentials against its user directory or external IdP. If valid, Cognito generates tokens (JWTs).
+  3. Tokens Returned :Cognito issues three JWT tokens:
+     - ID Token → contains user profile info (name, email, sub).
+     - Access Token → contains scopes/roles (used for APIs).
+     - Refresh Token → used to get new tokens without re-login.
+     
+     Example decoded ID token payload:
+     ```
+     {
+       "sub": "user-1234",
+       "email": "test@example.com",
+       "email_verified": true,
+       "cognito:groups": ["admin"],
+       "exp": 1694163600,
+       "iat": 1694160000,
+       "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXX"
+     }
+     ```
+  4. Client Uses Token:  The client app (frontend or mobile) stores the tokens (usually in memory or secure storage). On each API request, it sends the Access Token in the Authorization: Bearer <token> header.
+  5. Backend Verification:
+     Your backend (e.g., Spring Boot app) doesn’t talk to Cognito every time. 
+     Instead, it verifies the JWT signature using Cognito’s public keys (JWKS endpoint).  
+     This ensures the token is valid and not tampered with.
+     If valid → grant access; if expired/invalid → reject.
+
+     🚀 Example Flow in Real Life
+        - User logs in → Cognito User Pool validates.
+        - Cognito returns JWT tokens (ID, Access, Refresh).
+        - Frontend stores tokens.
+        - For each API call → frontend attaches Authorization: Bearer <Access_Token>.
+        - Backend verifies JWT signature using Cognito’s public key (https://cognito-idp.<region>.amazonaws.com/<pool_id>/.well-known/jwks.json).
+        - If valid → allow access; else → return 401 Unauthorized.
+
+## How do you call one service from another one in Microservice architecture?
+ "In microservice architecture, services communicate in two main ways:
+ - Synchronous Communication – When a service needs an immediate response, we use HTTP methods (REST APIs) or gRPC. For example, in Spring Boot we use Feign clients or WebClient to call another service.
+ - Asynchronous Communication – For **decoupled flows, we use messaging systems like Kafka or message queues**. A service publishes an event/message, and other services consume it without waiting for a response. This improves scalability and resilience.
+
+In my current projects, we integrate with Kafka for event-driven communication and IBM MQ for traditional enterprise messaging. We also use MQ Explorer to monitor queues, check message backlogs, and troubleshoot message flow between services.
     
-Design patterns in microservice architecture?
-What topics are you aware of in Java8? Share some new things added in java8
+## Design patterns in microservice architecture?
+- **Centralized logging:** I have worked on Centralized logging and Monitoring using ELK stack and cloudwatch
+- **JWT auth pattern:** where the server sends the jwt token that we store on frontend and send this token in Authorization header for each API call from frontend to the backend services.
+- **Distributed Tracing:** Using Theos to track the journey of an api call right from the event that triggered it up untill the time we got a success/failure response. Rid, Sid, etc are the tags used...we use a single MDC thread to save and track the flow of the request throughout its journey.
+- **Health Check Endpoint:** To	Monitor service availability by integrating the	/actuator/health in Spring Boot to be used in Theos Observability tool.
+- **Serverless-first Microservices architecture:** using AWS lambda. Each service is independently deployable and follows single responsibility principles.
+- **Event-driven architecture:** Using Kafka as event backbone to consume the events coming from another microservices.
+- **CQRS(Command Request Responsibility Segregration)**: Read operations(reading and filtering from the queue) are separate from write operations(save account SBS to write the data in the DB). So we have different models for reading and writing.
+- **Circuit Breaker Pattern:** Fast Failure instead of waiting for timeouts: we return the flow if any one filter in Kafka filtering fails. When external services are down, we prevent cascading failures. Just like we do in GLI wrapper application...do health check of Account domain API. If it is down, do a graceful return instead of doing further calls to account domain for further computation.
+
+  
+## What topics are you aware of in Java8? Share some new things added in java8
   - Lambda
   - Optional etc
 Similarly for Java17
