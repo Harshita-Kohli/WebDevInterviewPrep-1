@@ -408,7 +408,7 @@ In my current projects, we integrate with Kafka for event-driven communication a
 - **Centralized logging:** I have worked on Centralized logging and Monitoring using ELK stack and cloudwatch
 - **JWT auth pattern:** where the server sends the jwt token that we store on frontend and send this token in Authorization header for each API call from frontend to the backend services.
 - **Distributed Tracing:** Using Theos to track the journey of an api call right from the event that triggered it up untill the time we got a success/failure response. Rid, Sid, etc are the tags used...we use a single MDC thread to save and track the flow of the request throughout its journey.
-- **Health Check Endpoint:** To	Monitor service availability by integrating the	/actuator/health in Spring Boot to be used in Theos Observability tool.
+- **Health Check Endpoint:** To	Monitor service availability by integrating the	/actuator/health in Spring Boot to be used in Theos Observability tool. [Refer this](https://microservices.io/patterns/observability/health-check-api.html)
 - **Serverless-first Microservices architecture:** using AWS lambda. Each service is independently deployable and follows single responsibility principles.
 - **Event-driven architecture:** Using Kafka as event backbone to consume the events coming from another microservices.
 - **CQRS(Command Request Responsibility Segregration)**: Read operations(reading and filtering from the queue) are separate from write operations(save account SBS to write the data in the DB). So we have different models for reading and writing.
@@ -424,26 +424,341 @@ Stream vs Loop: Which is faster for iterating an array or list?
  - For/while
 
 
-Intermediate and terminal operations in Stream?
-What is a Functional Interface and its examples
+## Intermediate and terminal operations in Stream?
+## What is a Functional Interface and its examples
 - Eg: Comparator, lambda expression, Runnable, Callable are all functional interfaces
 
-What is an Anonymous class?
-What is an abstract class?
+## What is an Anonymous class?
+## Abstarct vs Anonymous Class vs Interface:
+| Feature              | **Abstract Class**                                                        | **Interface**                                                                         | **Anonymous Class**                                                               |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Definition**       | A class with `abstract` keyword. Can’t be instantiated.                   | A contract that defines methods a class must implement.                               | A class without a name, defined and instantiated in one place.                    |
+| **Purpose**          | Share **state + behavior**, and enforce some methods to be implemented.   | Define **capabilities/contract** that can be implemented by multiple classes.         | Provide a **one-time implementation** of an interface or abstract class.          |
+| **Instantiation**    | ❌ Can’t be directly instantiated.                                         | ❌ Can’t be directly instantiated.                                                     | ✅ Instantiated immediately where declared.                                        |
+| **Constructors**     | ✅ Allowed (for subclasses to call).                                       | ❌ Not allowed.                                                                        | ❌ No constructors, but instance initializer blocks can be used.                   |
+| **Methods**          | Abstract + Concrete methods.                                              | Abstract, `default`, `static`, and `private` methods (from Java 8/9+).                | Must implement all abstract methods of the type being extended/implemented.       |
+| **Variables**        | Instance variables + static variables.                                    | Only `public static final` constants (implicitly).                                    | Can define variables locally within its body.                                     |
+| **Inheritance**      | Single inheritance only (`extends`).                                      | Multiple inheritance allowed (`implements`).                                          | Implements/extends inline, no `extends/implements` keyword explicitly.            |
+| **Access Modifiers** | Can use all (`private`, `protected`, `public`).                           | Methods are `public abstract` by default; variables are `public static final`.        | Depends on enclosing type, usually `public` for methods.                          |
+| **When to Use**      | When classes share common code but must also implement abstract behavior. | When you want to enforce a contract or capability across multiple, unrelated classes. | When you need a quick, one-off implementation (e.g., callbacks, event listeners). |
+| **Example**          | `abstract class Animal { abstract void sound(); }`                        | `interface Flyable { void fly(); default void wings(){...} }`                         | `Runnable r = new Runnable(){ public void run(){...} };`                          |
 
-Default method vs Static Method in Interface?
-What is Heap and Stack Memory in Java? What gets stored in Heap and what in Stack?
-Which is faster out of heap and stack? As in what can be accessed faster?
-Why strings in Java are immutable? What is the benefit?
 
-In Collections framework in Java, in which scenario is Linked List preferred over ArrayList?
+## What is an abstract class?
+- A class that does not define the methods, only specifies the methods.
+- Must have atleast one abstract method.
+- They cannot be instantiated on their own, must be extended by a sub class, and the sub class must implement the abstract methods or itself be marked a abstract.
+## Why static and final variables in Interface?
+- Static because, when we implement the interface, we don't get the variables of the interface, only the methods. To be able to access the variables, we must have a workaround --> which is static, meaning we are able to access them directly via the Interface name inside the implemnenting class.
+- Final because -->
+   - Interfaces can't be instantiated. If interface variables were not final, you would expect to change them through an object of the interface. But since interfaces have no objects (can’t be instantiated), this would be meaningless.
+
+So, they are constants, fixed at compile time.
+   - Once assigned, the value cannot be changed (acts like a constant). If they weren’t final, each implementing class could try to change the variable → breaking the contract idea of an interface. Ensures consistency across all implementations.
+ 
+## What is the Diamond Problem in Java?
+- The diamond problem arises in multiple inheritance when a class inherits two methods with the same signature, leading to ambiguity.
+- Java avoids this at the class level by not supporting multiple inheritance of classes.
+- However, with Java 8’s default methods in interfaces, the diamond problem can occur.
+- If two interfaces define the same default method, the implementing class must override the method and explicitly choose which interface’s implementation to use (e.g., A.super.method()), or provide its own. This ensures clarity and removes ambiguity.
+```
+interface A {
+    default void show() {
+        System.out.println("A's show()");
+    }
+}
+
+interface B {
+    default void show() {
+        System.out.println("B's show()");
+    }
+}
+
+class C implements A, B {
+    // Compilation error if we don't resolve the conflict
+    @Override
+    public void show() {
+        // Must resolve explicitly
+        A.super.show();   // or B.super.show()
+        System.out.println("C's own implementation");
+    }
+}
+
+public class DiamondProblemDemo {
+    public static void main(String[] args) {
+        C obj = new C();
+        obj.show();
+    }
+}
+```
+
+## Default method vs Static Method in Interface?
+- 🔹 Default Method in Interface
+   - Introduced in Java 8.
+   - Defined with default keyword inside an interface.
+   - Provides a default implementation so that classes implementing the interface don’t have to override it.
+   - Can be overridden by the implementing class.
+   - Useful for backward compatibility (adding new methods to interfaces without breaking existing code).
+
+✅ Example:
+```
+interface Vehicle {
+    default void start() {
+        System.out.println("Vehicle is starting...");
+    }
+}
+
+class Car implements Vehicle {
+    // Car can use default start() OR override it
+}
+```
+
+
+🔹 Static Method in Interface
+
+   - Also introduced in Java 8.
+   - Declared with static keyword inside an interface.
+   - Belongs to the interface itself, not to the implementing class.\
+   - Cannot be overridden by implementing classes.
+   - Useful for utility/helper methods related to the interface.
+
+✅ Example:
+```
+interface Vehicle {
+    static void service() {
+        System.out.println("Vehicle is being serviced...");
+    }
+}
+
+class Car implements Vehicle {
+    void demo() {
+        Vehicle.service(); // must be called with interface name
+    }
+}
+```
+
+## What is Heap and Stack Memory in Java? What gets stored in Heap and what in Stack?
+🔹 1. **Stack Memory**
+
+  Where? → Each thread has its own stack (created when the thread is created).
+  What it stores?
+   - Local variables (primitives like int, double, etc.).
+   - References (pointers) to objects in the heap.
+   - Method call frames (stack frames).
+
+  Lifetime? → **Variables live only until the method completes.**
+
+  Speed? → Very fast (LIFO structure).
+
+  Size? → Smaller than heap; can cause StackOverflowError if recursion is too deep.
+
+   👉 Example:
+   ```
+   public void calculate() {
+       int x = 10;   // stored in Stack
+       String s = "Hello";  // reference stored in Stack, but "Hello" object may be in String Pool (Heap)
+   }
+   ```
+- In Java, Stack memory is used for method execution: it stores local variables, method call frames, and references to objects. Each thread has its own stack, and memory is freed when the method ends.
+
+🔹 **2. Heap Memory**
+
+   Where? → Shared across all threads, managed by the JVM’s Garbage Collector (GC).
+   What it stores?
+    - All objects created using new.
+    - Instance variables of objects.
+    - Strings (in String Pool, which is part of Heap).
+
+   Lifetime? → Objects live until they are no longer referenced → then GC reclaims memory.
+
+   Size? → Much larger than stack; can cause OutOfMemoryError if full.
+
+   👉 Example:
+   ```
+   Employee emp = new Employee(); 
+   // 'emp' reference in Stack, actual Employee object in Heap
+   ```
+
+- Heap memory is used for storing all objects and instance variables. It’s shared across all threads and managed by the Garbage Collector. Stack is faster but smaller, while heap is larger but slower due to GC management
+
+
+
+## Which is faster out of heap and stack? As in what can be accessed faster?
+- Stack is faster because it uses sequential memory allocation with simple pointer arithmetic
+- STACK:
+  - Accessing variables from the stack is faster than accessing from the heap. The stack uses simple push/pop operations and direct addressing, while the heap requires dynamic memory allocation and garbage collection, which makes it slower
+  - Memory allocation/deallocation is just pointer arithmetic (increment/decrement stack pointer).Hence, O(1) access time and extremely CPU-cache-friendly.
+    
+- ON HEAP: Access requires pointer dereferencing (reference on the stack → actual object on heap). This extra indirection makes heap access slower.
+  
+## Why strings in Java are immutable? What is the benefit?
+ - Security: If Strings were mutable, a malicious piece of code could alter the value after it’s created (e.g., change "jdbc:mysql://..." to another URL). Immutability ensures safety when passing Strings between methods and classes.
+ - Caching of HashCode: Strings are often used as keys in HashMap, HashSet, Hashtable. Their hashCode() is cached at creation time (since the value never changes). If Strings were mutable, hashcodes would change → maps/sets would break.
+ - StringPool: Strings are stored in the String Constant Pool in heap memory. Since they’re immutable, multiple references can safely point to the same object.
+ - Thread-Safety without Synchronization: Immutable strings are by default trhread safe and don't require any synchronization. Multiple threads can share the same String without risk of concurrent modification.
+
+## In Collections framework in Java, in which scenario is Linked List preferred over ArrayList?
    - For retrieval of data --> prefer ArrayList
-   - For adding data --> Prefer LinkedList
+   - For insertion and deletion of data --> Prefer LinkedList
 
-Which set would you use for preserving the order?
-- LinkedHashSet
+## Implementations of Set Interface:
+<img width="1176" height="630" alt="image" src="https://github.com/user-attachments/assets/baaffd10-6247-4eac-a192-61b52cadf51d" />
 
-What are the different sets in Java?
-What is hash Collision?
+## Which set would you use for preserving the order of insertion?
+- LinkedHashSet - (when you see 'Linked" --> means order of insertion will be preserved)
+
+## What are the different sets in Java?
+- HashSet, LinkedHashSet, TreeSet
+
+  
+## What is hash Collision?
 Why is it important to override the hashcode method when overriding equals()?
 
+## equals() vs (==) in Java?
+<img width="2651" height="486" alt="image" src="https://github.com/user-attachments/assets/6d07f5c3-a8ab-45db-9bbd-4bf7360dd436" />
+- ```
+  String str1 = new String("InterviewBit");
+  String str2 = "InterviewBit";
+  //this returns false since str1 is stored in heap memory and str2 is in stack     
+  System.out.println(str1 == str2);
+  ```
+##  How is the creation of a String using new() different from that of a literal?
+
+```
+public class StringInternDemo {
+    public static void main(String[] args) {
+        String s1 = "hello";   // goes to String Pool
+        String s2 = "hello";   // reused from pool
+        String s3 = new String("hello"); // creates a new object in heap (not pool)
+        
+        System.out.println(s1 == s2); // true (same pool reference)
+        System.out.println(s1 == s3); // false (different objects)
+        
+        // But if we intern s3:
+        String s4 = s3.intern();
+        System.out.println(s1 == s4); // true (pool reference reused)
+    }
+}
+```
+
+- Using new, if two strings are created, bith get alloacted diff space in heap memory.  String Interning does not take place
+<img width="2415" height="1203" alt="image" src="https://github.com/user-attachments/assets/969998b2-0372-40e0-bada-aee61ddf5cd1" />
+
+- Using simple literal assignment: The two strings with same value get two refernces pointing to the same location in heap memory.
+   - When a String is formed as a literal with the assistance of an assignment operator, it makes its way into the String constant pool so that String Interning can take place. This same object in the heap will be referenced by a different String if the content is the same for both of them.
+
+<img width="1962" height="945" alt="image" src="https://github.com/user-attachments/assets/7f350993-c640-48c4-bd6e-1db609e637b0" />
+
+## In case a package has sub packages, will it suffice to import only the main package? e.g. Does importing of com.myMainPackage.* also import com.myMainPackage.mySubPackage.*?
+
+- This is a big NO. We need to understand that the importing of the sub-packages of a package needs to be done explicitly. Importing the parent package only results in the import of the classes within it and not the contents of its child/sub-packages
+
+## What is the output of the below code and why?
+```
+public class InterviewBit{
+   public static void main(String[] args)
+   {
+       System.out.println('b' + 'i' + 't');
+   }
+}
+```
+“bit” would have been the result printed if the letters were used in double-quotes (or the string literals). But the question has the character literals (single quotes) being used which is why concatenation wouldn't occur. The corresponding ASCII values of each character would be added and the result of that sum would be printed.
+The ASCII values of ‘b’, ‘i’, ‘t’ are:
+```
+‘b’ = 98
+‘i’ = 105
+‘t’ = 116
+98 + 105 + 116 = 319
+```
+Hence 319 would be printed
+
+##  What are the possible ways of making object eligible for garbage collection (GC) in Java?
+- First Approach: Set the object references to null once the object creation purpose is served.
+  ```
+     String s1 = "Some String";
+           // s1 referencing String object - not yet eligible for GC
+       s1 = null; // now s1 is eligible for GC
+  ```
+- Second Approach: Point the reference variable to another object. Doing this, the object which the reference variable was referencing before becomes eligible for GC.
+  ```
+  String s1 = "To Garbage Collect";
+     String s2 = "Another Object";
+     System.out.println(s1); // s1 is not yet eligible for GC
+     s1 = s2; // Point s1 to other object pointed by s2
+  ```
+- Third Approach: Island of Isolation Approach: When 2 reference variables pointing to instances of the same class, and these variables refer to only each other and the objects pointed by these 2 variables don't have any other references, then it is said to have formed an “Island of Isolation” and these 2 objects are eligible for GC.
+Example:
+```
+public class IBGarbageCollect {
+   IBGarbageCollect ib;    
+   public static void main(String [] str){
+       IBGarbageCollect ibgc1 = new IBGarbageCollect();
+       IBGarbageCollect ibgc2 = new IBGarbageCollect();
+       ibgc1.ib = ibgc2; //ibgc1 points to ibgc2
+       ibgc2.ib = ibgc1; //ibgc2 points to ibgc1
+       ibgc1 = null;
+       ibgc2 = null;
+       /* 
+       * We see that ibgc1 and ibgc2 objects refer 
+       * to only each other and have no valid 
+       * references- these 2 objects for island of isolcation - eligible for GC
+       */
+   }
+}
+```
+## In the below Java Program, how many objects are eligible for garbage collection? [REFER](https://www.interviewbit.com/java-interview-questions/#how-many-objects-are-eligible-for-garbage-collection)
+```
+class Main{
+   public static void main(String[] args){
+       int[][] num = new int[3][];
+       num[0] = new int[5];
+       num[1] = new int[2];
+       num[2] = new int[3];
+       
+       num[2] = new int[5];
+       num[0] = new int[4];
+       num[1] = new int[3];
+       
+       num = new int[2][];
+   }
+}
+```
+In the above program, a total of 7 objects will be eligible for garbage collection. Let’s visually understand what's happening in the code.
+
+##  Assume a thread has a lock on it, calling the sleep() method on that thread will release the lock?
+- A thread that has a lock won't be released even after it calls sleep(). Despite the thread sleeping for a specified period of time, the lock will not be released.
+
+### What is the best way to inject dependency? Also, state the reason?
+1. **Constructor injection:** when we have a **mandatory dependency** to be injected during instantiation of the CarService class.
+- Since private final Engine engine; --> Declares a mandatory dependency on an Engine object. final means once it’s assigned, it cannot be changed → ensures immutability. So we prefer Constructor injection
+- @Autowired on Constructor: Spring will automatically inject a bean of type Engine when creating a CarService object.
+- Constructor injection ensures:
+   The 'Engine' dependency is always provided.
+   engine can be final → class becomes immutable.
+   Clear, testable, and explicit dependency declaration.
+- In this code, CarService is a Spring-managed bean (@Component). It has a mandatory dependency on Engine, injected via the constructor (@Autowired). The final keyword ensures immutability, and constructor injection guarantees that the dependency is always provided when the bean is created, making the class clear, testable, and safe
+```
+@Component
+public class CarService {
+    private final Engine engine;
+
+    @Autowired
+    public CarService(Engine engine) {
+        this.engine = engine;  // mandatory dependency
+    }
+}
+```
+2.**Setter Injection:**
+ ```
+   @Component
+public class CarService {
+    private Engine engine;
+
+    @Autowired
+    public void setEngine(Engine engine) {
+        this.engine = engine;  // optional dependency
+    }
+}
+```
+- **Autowired on Setter:** Spring will automatically inject a bean of type Engine into this setter after the CarService object is created. Setter injection happens after the bean is instantiated, not at construction time.
+   This allows the dependency to be optional — the object can exist without it initially.
