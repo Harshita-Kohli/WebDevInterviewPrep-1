@@ -762,3 +762,84 @@ public class CarService {
 ```
 - **Autowired on Setter:** Spring will automatically inject a bean of type Engine into this setter after the CarService object is created. Setter injection happens after the bean is instantiated, not at construction time.
    This allows the dependency to be optional — the object can exist without it initially.
+
+## What is Shallow and Deep Copy in Java?
+- **Shallow Copy:**
+```
+  Rectangle obj1 = new Rectangle();
+  Rectangle obj2 = obj1;
+```
+  This just creates a new reference that points to the same memory location in Heap. 
+
+  <img width="2496" height="1182" alt="image" src="https://github.com/user-attachments/assets/1ec1442a-346f-447e-92c5-4e51e40e0c2e" />
+
+  - **Deep Copy:**  In a deep copy, we create a new object and copy the old object value to the new object.
+       ```
+       Rectangle obj3 = new Rectangle();
+       Obj3.length = obj1.length;
+       Obj3.breadth = obj1.breadth;
+       ```
+ - Now we see that we need to write the number of codes for this deep copy. So to reduce this, In java, there is a method called **clone()**.
+ - The **clone()** will do this **deep copy internally and return a new object**. And to do this we need to write only 1 line of code. That is - **Rectangle obj2 = obj1.clone();**
+
+
+## Can you call a constructor of a class inside the another constructor?
+- Yes, the concept can be termed as constructor chaining and can be achieved using this().
+   <img width="2004" height="1222" alt="image" src="https://github.com/user-attachments/assets/71198ac5-69d6-4265-8c33-4e165b1cdf26" />
+
+## Java works as “pass by value” or “pass by reference” phenomenon?
+ **Java is always pass by value.**
+- For primitive types (int, double, boolean, etc.):
+  - The actual primitive value is copied and passed.
+  - Changes inside the method do not affect the original.
+    ```
+    public class Test {
+    public static void main(String[] args) {
+        int a = 10;
+        modifyPrimitive(a);
+        System.out.println(a); // 10 (unchanged)
+    }
+
+    static void modifyPrimitive(int x) {
+        x = 20; // only local copy changed
+    }
+    }
+   ```
+
+For objects:
+ - The value being copied is the reference (memory address), not the object itself.
+ - Both the caller and callee now hold references pointing to the same object.
+ - So, if you change the state of the object (e.g., modify its fields), the caller sees the change.
+```
+class Car {
+    String color;
+    Car(String color) { this.color = color; }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Car car = new Car("Red");
+        paintCar(car);
+        System.out.println(car.color); // Blue
+    }
+
+    static void paintCar(Car c) {
+        c.color = "Blue"; // modifies the object state
+    }
+}
+```
+ - **But if you reassign the reference (make it point to a new object), the caller does not see it — because only the local copy of the reference was changed.**
+```
+public class Test {
+    public static void main(String[] args) {
+        Car car = new Car("Red");
+        changeCar(car);
+        System.out.println(car.color); // Red (unchanged)
+    }
+
+    static void changeCar(Car c) {
+        c = new Car("Green"); // only local reference changes
+    }
+}
+```
+
