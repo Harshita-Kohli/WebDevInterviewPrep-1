@@ -126,3 +126,33 @@ Hence MODULE SCOPE means:
 - On the other hand, globally-defined variables are available within the module.
 - **Global scope > Module scope > Function Scope**
 
+
+## What will be the O/P when I want to run several code before the code inside import syntax gets executed?
+- file-1.js:
+```
+console.log('Inside File 1');
+import './file-2.js'
+```
+- file-2.js:
+```
+console.log('Inside File 2');
+```
+- ANS:  Output:
+```
+Inside File 2
+Inside File 1 
+```
+
+- Explanation: the ECMAScript Module (ESM) spec requires that all **imports are resolved and loaded** before any code in the importing file runs. Hence, it first import file2 irrespective of where the import statement is.
+- If we used require() method of classic JS, then file1 would get executed first, then file2 will be imported and executed later, since require() runs inline like a normal function call:
+```
+// file-1.js
+console.log("Inside File 1");
+require("./file-2.js");
+```
+
+Output would now be: 
+```
+Inside File 1
+Inside File 2
+```
