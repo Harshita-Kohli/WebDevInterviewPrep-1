@@ -114,3 +114,15 @@ Examples (by default):
         ✅ It aligns to baseline like inline text
         
         ⚡ **So visually <img> feels like inline-block**
+
+
+## What is module-scope? [Refer MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules#applying_the_module_to_your_html)
+- We can have 2 types of script files: **Normal/ Classic script** and **Module Script**
+- When we define a variable in a module script, it does not have a global scope and cannot be accesses via Javascript console.
+- Therefore, you will only be able to access imported features in the script they are imported into, and you won't be able to access them from the JavaScript console, for example. You'll still get syntax errors shown in the DevTools, but you'll not be able to use some of the debugging techniques you might have expected to use.
+
+Hence MODULE SCOPE means: 
+- **Module-defined variables are scoped to the module unless explicitly attached to the global object. This scope is module-scope.**
+- On the other hand, globally-defined variables are available within the module.
+- **Global scope > Module scope > Function Scope**
+
