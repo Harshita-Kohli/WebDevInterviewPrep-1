@@ -155,3 +155,16 @@ Output would now be:
 Inside File 1
 Inside File 2
 ```
+
+
+## What are JS Modules?
+- Modules are singleton. They will be loaded and executed only once.
+- Modules can use import and export.
+- Modules are always executed in strict mode.
+- All objects (class, const, function, let, or var) are private unless explicitly exported.
+- The value of this is undefined at the outer scope (not window).
+- Modules are loaded asynchronously.
+- Modules are loaded using CORS. see Access-Control-Allow-Origin: *.
+- Modules don't send cookies and authentication info by default. See crossorigin="use-credentials".
+- Imports are resolved statically at load time rather than dynamically at runtime.
+
