@@ -1,6 +1,5 @@
-If we don't add any tag, it won't parse the HTML until script is downloaded completely. So, this kind of blocks the rendering of the page.
-
 ## 1. Defer vs Async attribute in <script> tag: [Refer MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script)
+- If we don't add any attribute with script tag, it won't parse the HTML until script is downloaded completely. So, this kindof blocks the rendering of the page. [REFER Namaste React repo for asyc vs defer vs nothing specified]
 - The defer attribute is a boolean attribute used with the <script> tag in HTML to control the execution of external JavaScript files.
 - Execution only after the entire HTML document is parsed completely.
 - Eg:
