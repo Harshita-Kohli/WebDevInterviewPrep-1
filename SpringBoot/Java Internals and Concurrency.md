@@ -216,3 +216,44 @@ Runnable r2 = ()->{sysout("running");}
 
 r1.run();
 r2.run();
+```
+
+## Comparable vs Comparator:
+- When we do Collections.sort(employees); --> this behind the scenes uses **emp1.compareTo(emp2);** which is a method that comes from the **Comparable Interface**
+- Comparable Interface: 
+```
+ public interface Comparable<T> {
+    int compareTo(T o);
+}
+```
+- **We implement the interface inside our class like this:**
+```
+class Employee implements Comparable<Employee> {
+    private int id;
+
+    @Override
+    public int compareTo(Employee other) {
+        return Integer.compare(this.id, other.id);
+    }
+}
+```
+Usage: `Collections.sort(employees);` ----> Java does this behind the scenes: `emp1.compareTo(emp2);`
+
+
+Comparator:
+```
+public interface Comparator<T> {
+    int compare(T o1, T o2);
+}
+```
+**We implement this as a separate object:**
+```
+Comparator<Employee> customCmp = new Comparator<Employee>(){ //we implement the interface by making an Anonymous class
+    public int compare(Employee emp1, Employee emp2){
+        if(emp1.salary > emp2.salary) return 1; //meaning we say swap kardo agar badi hai emp1 ki salary
+        else return -1; //don't swap, keep as is
+        }
+}
+```
+- Usage: We pass the customCmp object along with the employees array in the sort() method to tell what custom logic to use for sorting the employees array
+`Collections.sort(employees, customCmp);`
