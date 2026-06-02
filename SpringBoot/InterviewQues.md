@@ -70,7 +70,8 @@ A Java Bean is basically a simple Java class that:
 - It doesn’t just mean the Java Bean class — **it means any Java object that is managed by the Spring IoC container.**
 - The IoC container (Inversion of Control) is like a factory in Spring that **creates and manages objects (beans) for you.**
 - You don’t create objects using new everywhere. Instead, you let Spring create and provide them whenever needed. This is how Dependency Injection (DI) works in Spring.
-
+## Diff between POJO, Java Bean and Spring Bean: 
+- http://medium.com/@manjupanthangi33597/pojo-vs-java-bean-vs-spring-bean-3982344dda9d
 ## Diff between ApplicationContext vs BeanFactory?
 - 🏭 BeanFactory
  - It’s the basic container in Spring.
@@ -894,4 +895,22 @@ public class Test {
     }
 }
 ```
+## What are the most important SpringBoot annotations?
+1. **@Component**
+```
+@Component
+public class EmployeeService {
+}
+```
 
+- Spring discovers it during component scanning and registers it as a bean. Equivalent bean name: `employeeService`
+  
+2. @Service: It is another annotation that creates bean, it is just a specialized form of @Component.
+3. @Controller: It also leads to bean creation, but it is also a specialized form of @Component that specifies that it is an MVC controller.
+4. @Repository: Used for **Data access layer**.
+5. @RestController = @Controller + @ResponseBody.
+6. @Bean annotation: It is used on methods. It means that the thing that will be returned from this method will be a Bean
+7. @postConstruct: The @PostConstruct annotation marks a method that must run exactly once after the Spring bean is initialized and all dependencies are injected.
+   - It is primarily used to perform **initial setup tasks, such as pre-loading a cache**, starting a background process, or validating configurations.💡
+   -**Why use @PostConstruct instead of a Constructor?**
+   - When a class constructor runs, Spring dependencies (@Autowired fields) are not yet injected. If you try to use an injected bean inside your constructor, you will get a NullPointerException. @PostConstruct guarantees that all dependencies are ready to use.
