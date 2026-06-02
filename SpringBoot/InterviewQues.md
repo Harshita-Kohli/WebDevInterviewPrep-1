@@ -458,6 +458,7 @@ Think of the flow like this:
 In my current projects, we integrate with Kafka for event-driven communication and IBM MQ for traditional enterprise messaging. We also use MQ Explorer to monitor queues, check message backlogs, and troubleshoot message flow between services.
     
 ## Design patterns in microservice architecture?
+- **Saga Pattern(V.V.IMP)**: http://medium.com/@manjupanthangi33597/pojo-vs-java-bean-vs-spring-bean-3982344dda9d
 - **Centralized logging:** I have worked on Centralized logging and Monitoring using ELK stack and cloudwatch
 - **JWT auth pattern:** where the server sends the jwt token that we store on frontend and send this token in Authorization header for each API call from frontend to the backend services.
 - **Distributed Tracing:** Using Theos to track the journey of an api call right from the event that triggered it up untill the time we got a success/failure response. Rid, Sid, etc are the tags used...we use a single MDC thread to save and track the flow of the request throughout its journey.
